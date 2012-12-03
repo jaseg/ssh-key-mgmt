@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+dig @130.149.7.7 AXFR physik-pool.tu-berlin.de|egrep '(IN CNAME|IN A|IN AAAA)'|sed 's/\(^[^ ]*physik-pool\.tu-berlin\.de\)\..*$/\1/'|grep -v '^;'|grep .|grep -v '^physik-pool.tu-berlin.de$'|grep -v _ |ssh-keyscan -f - -H
+

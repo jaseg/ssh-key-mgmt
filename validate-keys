@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+#CAUTION the following line explicitly excludes hostnames containing underscores
+hostlist=$(host -l physik-pool.tu-berlin.de|grep has\ address|grep -o '^[-0-9a-zA-Z.]*')
+
+for longhost in $hostlist
+do 
+	shorthost=${longhost%%.*}
+	addr=$(host $longhost|tail -n 1|sed 's/.*has address \([0-9a-fA-F.:]*\)/\1/')
+	shorthost_key=$(ssh-keygen -l -f known_hosts -F $shorthost|tail -n 1|cut -d\  -f2)
+	longhost_key=$(ssh-keygen -l -f known_hosts -F $longhost|tail -n 1|cut -d\  -f2)
+	addr_key=$(ssh-keygen -l -f known_hosts -F $addr|tail -n 1|cut -d\  -f2)
+	if [ $(echo -e "$shorthost_key\n$longhost_key\n$addr_key"|sort|uniq -u|wc -l) -gt 0 ]
+	then
+		echo "NON MATHCHING KEYS FOR HOST $longhost AKA $shorthost AKA $addr"
+		echo "$shorthost_key"
+		echo "$longhost_key"
+		echo "$addr_key"
+	fi
+done
+
