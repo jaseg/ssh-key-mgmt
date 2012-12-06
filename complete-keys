@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+#CAUTION the following line explicitly excludes hostnames containing underscores
+hostlist=$(host -l physik-pool.tu-berlin.de|grep has\ address|grep -o '^[-0-9a-zA-Z.]*')
+
+for longhost in $hostlist
+do 
+	shorthost=${longhost%%.*}
+	addr=$(host $longhost|tail -n 1|sed 's/.*has address \([0-9a-fA-F.:]*\)/\1/')
+	key=$((ssh-keygen -f $1 -F $shorthost; ssh-keygen -f $1 -F $longhost; ssh-keygen -f $1 -F $addr)|grep -v '^#'|cut -d\  -f2-|tail -n 1)
+	if [ -n "$key" ]
+	then
+		echo "$shorthost $key"
+		echo "$longhost $key"
+		echo "$addr $key"
+	fi
+done
+
